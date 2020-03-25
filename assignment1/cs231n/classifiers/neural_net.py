@@ -6,6 +6,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from past.builtins import xrange
 
+
 class TwoLayerNet(object):
     """
     A two-layer fully-connected neural network. The net has an input dimension of
@@ -80,7 +81,11 @@ class TwoLayerNet(object):
         #############################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-        pass
+        hidden_score = X.dot(W1)
+        hidden_score += b1
+        relu = (hidden_score > 0) * hidden_score
+        scores = relu.dot(W2)
+        scores += b2
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
@@ -98,7 +103,10 @@ class TwoLayerNet(object):
         #############################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-        pass
+        n_train, n_classes = X.shape[0], scores.shape[1]
+        temp = np.sum(np.exp(scores), axis=1)
+        l2 = lambda w: np.sum(w * w)
+        loss = np.mean(np.log(temp) - scores[range(n_train), y]) + reg * (l2(W1) + l2(b1) + l2(W2) + l2(b2))
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
@@ -111,7 +119,19 @@ class TwoLayerNet(object):
         #############################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-        pass
+        y_matrix = np.zeros((n_train, n_classes))
+        y_matrix[range(n_train), y] = 1
+        dscore = np.exp(scores) / temp.reshape((n_train, 1)).dot(np.ones((1, n_classes))) - y_matrix
+        db2 = dscore
+        grads['b2'] = np.mean(db2, axis=0) + 2 * b2 * reg
+        dw2 = relu.T.dot(dscore)
+        grads['W2'] = dw2 / n_train + 2 * W2 * reg
+        drelu = dscore.dot(W2.T)
+        dhidden = drelu * (hidden_score > 0)
+        db1 = dhidden
+        grads['b1'] = np.mean(db1, axis=0) + 2 * b1 * reg
+        dw1 = X.T.dot(dhidden)
+        grads['W1'] = dw1 / n_train + 2 * W1 * reg
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
@@ -156,7 +176,9 @@ class TwoLayerNet(object):
             #########################################################################
             # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-            pass
+            idx = np.random.choice(num_train, batch_size)
+            X_batch = X[idx, :]
+            y_batch = y[idx]
 
             # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
@@ -172,7 +194,8 @@ class TwoLayerNet(object):
             #########################################################################
             # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-            pass
+            for param in self.params:
+                self.params[param] -= learning_rate * grads[param]
 
             # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
@@ -218,7 +241,7 @@ class TwoLayerNet(object):
         ###########################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-        pass
+        y_pred = self.loss(X).argmax(axis=1)
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 

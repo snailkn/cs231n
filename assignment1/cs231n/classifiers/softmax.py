@@ -33,7 +33,22 @@ def softmax_loss_naive(W, X, y, reg):
     #############################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    n_train, n_classes, n_feature = X.shape[0], W.shape[1], X.shape[1]
+    for i in range(n_train):
+        pred = X[i].dot(W)
+        temp1 = np.exp(pred).sum()
+        for j in range(n_classes):
+            temp2 = np.exp(pred[j]) / temp1
+            if j == y[i]:
+                temp2 -= 1
+            dW[:, j] += temp2 * X[i]
+        loss += np.log(temp1) - pred[y[i]]
+        
+    loss /= n_train
+    dW /= n_train
+    
+    loss += 0.5 * reg * np.sum(W * W)
+    dW += reg * W
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
@@ -58,7 +73,14 @@ def softmax_loss_vectorized(W, X, y, reg):
     #############################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    n_train, n_classes = X.shape[0], W.shape[1]
+    pred = X.dot(W)
+    temp = np.sum(np.exp(pred), axis=1)
+    loss = np.mean(np.log(temp) - pred[range(n_train), y]) + 0.5 * reg * np.sum(W * W)
+    
+    y_matrix = np.zeros((n_train, n_classes))
+    y_matrix[range(n_train), y] = 1
+    dW = X.T.dot(np.exp(pred) / temp.reshape((n_train, 1)).dot(np.ones((1, n_classes))) - y_matrix) / n_train + reg * W
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
